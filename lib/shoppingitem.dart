@@ -2,7 +2,7 @@
 import 'storage.dart';
 
 class ShoppingItem {
-  num id=-1;
+  int id=-1;
   num qty=1;
   num linetotal=0;
   String notes;
@@ -12,7 +12,7 @@ class ShoppingItem {
 
 
 
-  ShoppingItem(String name, num total,{num qty=1,String details = null})
+  ShoppingItem(String name, num total,{num qty=1,String details})
   {
     assert(name!=null && name.isNotEmpty); //theoretical double-bagging
     this.name = name;
