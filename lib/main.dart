@@ -15,10 +15,13 @@ void main() {
   runApp(SampleApp());
 }
 
+
+bool ios;
 class SampleApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    ios = Theme.of(context).platform == TargetPlatform.iOS;
     return MaterialApp(
       title: 'Sample App',
       theme: ThemeData(
@@ -150,7 +153,7 @@ class _SampleAppPageState extends State<SampleAppPage> {
           Object info = await Navigator.of(context).pushNamed("/item") as String;
           if(info != null)
           {
-            await DlgUtil.doAlertDialog(context,info,["OK"]) as String;
+            await DlgUtil.doAlertDialog(context,info,["OK"]);
             setState(()
             {
               mayhemArray.clear(); //force a reload
@@ -190,6 +193,11 @@ class _SampleAppPageState extends State<SampleAppPage> {
             flex:2,
         child: new Text(mayhemArray[i].fmtQty, style:gridstyle,textAlign: TextAlign.center),
       ));
+      int flexForRemove=6;
+      if(ios)
+        {
+          flexForRemove=5;
+        }
       if(mayhemArray[i].qty >0)
       {
         rowContent.add(
@@ -230,7 +238,7 @@ class _SampleAppPageState extends State<SampleAppPage> {
       }
       rowContent.addAll([
         new Expanded(
-          flex:6,
+          flex:flexForRemove,
           child: new Text(mayhemArray[i].name, style:gridstyle, textAlign: TextAlign.start,maxLines: 3,),
         ),
         new Expanded(
@@ -245,9 +253,10 @@ class _SampleAppPageState extends State<SampleAppPage> {
               Object info = await Navigator.of(context).pushNamed("/item") as String;
               if(info != null)
               {
-                await DlgUtil.doAlertDialog(context,info,["OK"]) as String;
+                await DlgUtil.doAlertDialog(context,info,["OK"]);
                 setState(()
                 {
+
                   runningTotal=currentlist.runningTotal;
                 });
                 //alert
