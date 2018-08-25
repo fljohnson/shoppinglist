@@ -24,10 +24,38 @@ class ShoppingItem {
     if(details != null) {
       notes = details;
     }
-    this.linetotal=total;
+
+    this.linetotal= Storage.roundToPlaces(total,2);
     this.fmtTotal=Storage.moneyFormatter.format(this.linetotal);
     Storage.addShoppingItem(this);
-    //TODO: store this object in DB
+
+
+  }
+
+  ShoppingItem.fromFile(Map<String,dynamic> incoming)
+  {
+/*
+    goods[j]["id"],
+    goods[j]["name"],
+    goods[j]["linetotal"],
+    qty:goods[j]["qty"],
+    details:goods[j]["notes"]
+    */
+
+    this.id = incoming["id"] as int;
+    this.name = incoming["name"] as String;
+
+      this.qty=incoming["qty"] as num;
+      this.fmtQty=Storage.qtyFormatter.format(this.qty);
+
+    //if(details != null) {
+      notes = incoming["notes"] as String;
+    //}
+
+    //force to at most two decimal places
+    this.linetotal = Storage.roundToPlaces(incoming["linetotal"] as num,2);
+
+    this.fmtTotal=Storage.moneyFormatter.format(this.linetotal);
   }
 
   ShoppingItem.createBlank()
@@ -41,12 +69,35 @@ class ShoppingItem {
     this.fmtTotal=" ";
   }
 
-  update({qty:String,name:String,total:String, details:String})
+  _commit() async {
+    //store this object in DB
+    String rv;
+
+    try {
+      if (id == -1) {
+        rv = await Storage.addShoppingItem(this) as String;
+      }
+      else {
+        rv = await Storage.updateShoppingItem(this) as String;
+      }
+    }
+    catch(uhoh)
+    {
+      rv= uhoh.toString();
+    }
+    return rv;
+  }
+  update({qty:String,name:String,total:String, details:String}) async
   {
+
     if(name!=null && name.isNotEmpty) {
       if (name != this.name) {
         this.name = name;
       }
+    }
+    else {
+      //no good! mark the error and get out of here
+      return "Item name cannot be blank";
     }
     var goodqty=num.tryParse(qty);
     if(goodqty != null)
@@ -58,20 +109,37 @@ class ShoppingItem {
     {
       this.notes = details;
     }
+
     var goodtotal=num.tryParse(total);
     if(goodtotal != null)
     {
-      this.linetotal=goodtotal;
+
+      this.linetotal=Storage.roundToPlaces(goodtotal,2);
+
       this.fmtTotal=Storage.moneyFormatter.format(this.linetotal);
     }
-    if(id == -1)
+    var result = await _commit() as String;
+
+    var rv;
+    if(result == "OK")
     {
-      Storage.addShoppingItem(this);
+      return result;
+    }
+    var placeOfUserErr = result.indexOf("USER:");
+    if( placeOfUserErr > -1)
+    {
+      rv = result.substring(placeOfUserErr + 5);
     }
     else
     {
-      Storage.updateShoppingItem(this);
+      rv = "Error:$result\n-from new ShoppingItem ${this.name}";
     }
+
+    return rv;
   }
 
+  static String moneyFmt(num subject)
+  {
+    return Storage.moneyFormatter.format(subject);
+  }
 }
